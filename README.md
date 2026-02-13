@@ -32,7 +32,7 @@ requires = ["uv_build>=0.8.18,<0.9.0"]
 build-backend = "uv_build"
 
 [project]
-dependencies = ["mjlab"]
+dependencies = ["mjlab>=1.1.0"]
 
 [project.entry-points."mjlab.tasks"]
 anymal_c_velocity = "anymal_c_velocity"
@@ -40,13 +40,6 @@ anymal_c_velocity = "anymal_c_velocity"
 
 The `[build-system]` table is required. Without a build backend, the package
 won't be installed into the environment and the entry point won't be registered.
-
-If developing locally against a checkout of mjlab:
-
-```toml
-[tool.uv.sources]
-mjlab = { path = "../mjlab", editable = true }
-```
 
 ### 2. Define your robot
 
