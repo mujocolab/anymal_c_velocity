@@ -1,8 +1,8 @@
 """RL configuration for ANYmal C velocity task."""
 
 from mjlab.rl import (
+  RslRlModelCfg,
   RslRlOnPolicyRunnerCfg,
-  RslRlPpoActorCriticCfg,
   RslRlPpoAlgorithmCfg,
 )
 
@@ -10,9 +10,12 @@ from mjlab.rl import (
 def anymal_c_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
   """Create RL runner configuration for ANYmal C velocity task."""
   return RslRlOnPolicyRunnerCfg(
-    policy=RslRlPpoActorCriticCfg(
-      actor_hidden_dims=(512, 256, 128),
-      critic_hidden_dims=(512, 256, 128),
+    actor=RslRlModelCfg(
+      hidden_dims=(512, 256, 128),
+      stochastic=True,
+    ),
+    critic=RslRlModelCfg(
+      hidden_dims=(512, 256, 128),
     ),
     algorithm=RslRlPpoAlgorithmCfg(
       entropy_coef=0.01,
