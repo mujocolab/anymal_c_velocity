@@ -3,7 +3,7 @@
 from mjlab.envs import ManagerBasedRlEnvCfg
 from mjlab.envs.mdp.actions import JointPositionActionCfg
 from mjlab.managers.termination_manager import TerminationTermCfg
-from mjlab.sensor import ContactMatch, ContactSensorCfg
+from mjlab.sensor import ContactMatch, ContactSensorCfg, RayCastSensorCfg
 from mjlab.tasks.velocity import mdp
 from mjlab.tasks.velocity.mdp import UniformVelocityCommandCfg
 from mjlab.tasks.velocity.velocity_env_cfg import make_velocity_env_cfg
@@ -20,8 +20,15 @@ def anymal_c_rough_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
 
   cfg.sim.mujoco.ccd_iterations = 500
   cfg.sim.contact_sensor_maxmatch = 500
+  cfg.sim.nconmax = 50
 
   cfg.scene.entities = {"robot": get_anymal_c_robot_cfg()}
+
+  # Set raycast sensor frame to ANYmal C base.
+  for sensor in cfg.scene.sensors or ():
+    if sensor.name == "terrain_scan":
+      assert isinstance(sensor, RayCastSensorCfg)
+      sensor.frame.name = "base"
 
   site_names = ("LF", "RF", "LH", "RH")
   geom_names = ("LF_foot", "RF_foot", "LH_foot", "RH_foot")
@@ -50,7 +57,10 @@ def anymal_c_rough_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     reduce="none",
     num_slots=1,
   )
-  cfg.scene.sensors = (feet_ground_cfg, nonfoot_ground_cfg)
+  cfg.scene.sensors = (cfg.scene.sensors or ()) + (
+    feet_ground_cfg,
+    nonfoot_ground_cfg,
+  )
 
   if cfg.scene.terrain is not None and cfg.scene.terrain.terrain_generator is not None:
     cfg.scene.terrain.terrain_generator.curriculum = True
@@ -136,7 +146,14 @@ def anymal_c_flat_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
   cfg.scene.terrain.terrain_type = "plane"
   cfg.scene.terrain.terrain_generator = None
 
+  # Remove raycast sensor and height scan (no terrain to scan).
+  cfg.scene.sensors = tuple(
+    s for s in (cfg.scene.sensors or ()) if s.name != "terrain_scan"
+  )
+  del cfg.observations["actor"].terms["height_scan"]
+  del cfg.observations["critic"].terms["height_scan"]
+
   # Disable terrain curriculum.
-  del cfg.curriculum["terrain_levels"]
+  cfg.curriculum.pop("terrain_levels", None)
 
   return cfg
